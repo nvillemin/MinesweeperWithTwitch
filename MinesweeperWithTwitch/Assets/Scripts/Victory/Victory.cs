@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Victory : MonoBehaviour {
 	public TextMesh tmScore, tmDeaths;

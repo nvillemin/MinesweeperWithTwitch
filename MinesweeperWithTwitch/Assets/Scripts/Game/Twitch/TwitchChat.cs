@@ -16,33 +16,34 @@ public class TwitchChat : MonoBehaviour {
     // When message is received from IRC-server or our own message.
     private void OnChatMsgReceived(string msg) {
         int msgIndex = msg.IndexOf("PRIVMSG #");
-		string message = msg.Substring(msgIndex + IRC.channelName.Length + 11);
+		string message = msg.Substring(msgIndex + IRC.channelName.Length + 11).ToLower();
 		string user = msg.Substring(1, msg.IndexOf('!') - 1);
         this.ParseMessage(user, message);
     }
 
     // Parse the user message
     private void ParseMessage(string user, string message) {
-        int messageLength = message.Length;
-        if (message.StartsWith("check ") && messageLength == 8 || messageLength == 9) {
-            int numberLength = messageLength == 8 ? 1 : 2;
-            int letterCode = (int)(char.ToLower(message[6]));
-            int number;
-            bool parsed = Int32.TryParse(message.Substring(7, numberLength), out number);
+        string[] command = message.Split(' ');
+        if (command.Length == 2) {
+            if (command[1].Length == 2 || command[1].Length == 3) {
+                // Parsing the coordinates
+                int numberLength = command[1].Length == 2 ? 1 : 2;
+                int letterCode = (int)(command[1][0]);
+                int number;
+                bool parsed = Int32.TryParse(command[1].Substring(1, numberLength), out number);
 
-            if (letterCode >= 97 && letterCode <= 122 && parsed && number >= 1) {
-                this.game.ChatCommand(user, "check", number - 1, letterCode - 97);
-            }
-        }
-        // Change this to a function
-        if (message.StartsWith("flag ") && messageLength == 7 || messageLength == 8) {
-            int numberLength = messageLength == 7 ? 1 : 2;
-            int letterCode = (int)(char.ToLower(message[5]));
-            int number;
-            bool parsed = Int32.TryParse(message.Substring(6, numberLength), out number);
-
-            if (letterCode >= 97 && letterCode <= 122 && parsed && number >= 1) {
-                this.game.ChatCommand(user, "flag", number - 1, letterCode - 97);
+                // Parsing the command
+                if (letterCode >= 97 && letterCode <= 122 && parsed && number >= 1) {
+                    string order = string.Empty;
+                    if (command[0] == "check" || command[0] == "c") {
+                        order = "check";
+                    } else if (command[0] == "flag" || command[0] == "f") {
+                        order = "flag";
+                    } else if (command[0] == "unflag" || command[0] == "uf") {
+                        order = "unflag";
+                    }
+                    this.game.ChatCommand(user, order, number - 1, letterCode - 97);
+                }
             }
         }
     }

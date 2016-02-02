@@ -110,13 +110,17 @@ public class Square : MonoBehaviour {
 
     // Flag this square
     public void Flag() {
-        if(!this.isChecked) {
-            if (this.isFlagged) {
-                Destroy(this.flag);
-            } else {
-                this.flag = (GameObject)Instantiate(this.flagPrefab, this.transform.position, Quaternion.identity);
-            }
-            this.isFlagged = !this.isFlagged;
+        if(!this.isChecked && !this.isFlagged) {
+            this.flag = (GameObject)Instantiate(this.flagPrefab, this.transform.position, Quaternion.identity);
+            this.isFlagged = true;
+        }
+    }
+
+    // Unflag this square
+    public void Unflag() {
+        if (!this.isChecked && this.isFlagged) {
+            Destroy(this.flag);
+            this.isFlagged = false;
         }
     }
 }

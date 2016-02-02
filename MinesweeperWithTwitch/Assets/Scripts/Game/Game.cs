@@ -140,6 +140,8 @@ public class Game : MonoBehaviour {
                 }
             } else if(command.Equals("flag")) {
                 this.squares[x, y].Flag();
+            } else if(command.Equals("unflag")) {
+                this.squares[x, y].Unflag();
             }
         }
     }
