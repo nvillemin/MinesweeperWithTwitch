@@ -15,7 +15,7 @@ public class Victory : MonoBehaviour {
         string scoresList = string.Empty;
         int count = 0;
         while (count < orderedScores.Count && count < 9) {
-            scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString();
+            scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString() + "\n";
             count++;
         }
         this.tmScoresList.text = scoresList;

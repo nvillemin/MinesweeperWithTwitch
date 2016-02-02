@@ -142,11 +142,11 @@ public class Game : MonoBehaviour {
     // Update the score list, called when a player score changed
     private void UpdateScoreList() {
         if(this.usersScore.Count > 0) {
-            List<KeyValuePair<string, int>> orderedScores = this.usersScore.OrderBy(x => x.Value).ToList();
+            List<KeyValuePair<string, int>> orderedScores = this.usersScore.OrderByDescending(x => x.Value).ToList();
             string scoresList = string.Empty;
             int count = 0;
             while (count < orderedScores.Count && count < 6) {
-                scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString();
+                scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString() + "\n";
                 count++;
             }
             this.tmScoresList.text = scoresList;
@@ -206,7 +206,7 @@ public class Game : MonoBehaviour {
         this.timer.StopTimer();
 		GlobalManager.endScore = this.timer.time;
         GlobalManager.endDeaths = this.nbDeaths;
-        GlobalManager.orderedScores = this.usersScore.OrderBy(x => x.Value).ToList();
+        GlobalManager.orderedScores = this.usersScore.OrderByDescending(x => x.Value).ToList();
         SceneManager.LoadScene("Victory");
     }
 }
