@@ -8,15 +8,17 @@ public class RestartTimer : MonoBehaviour {
 	private TextMesh tm;
 	private float time;
 
-	// Restart timer initialization
-	void Start() {
+    // ========================================================================
+    // Restart timer initialization
+    void Start() {
 		this.tm = (TextMesh)this.GetComponent("TextMesh");
         this.tm.text = restartTime.ToString();
         this.time = restartTime;
 	}
 
-	// Updating the timer once per frame
-	void Update() {
+    // ========================================================================
+    // Updating the timer once per frame
+    void Update() {
 		this.time -= Time.deltaTime;
 		if(this.time <= 0f) {
 			this.tm.text = "GO!";

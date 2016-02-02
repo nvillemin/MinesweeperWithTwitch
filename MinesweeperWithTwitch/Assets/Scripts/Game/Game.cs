@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Global;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour {
     public GameObject squarePrefab, borderSquarePrefab, borderTextPrefab;
-    public TextMesh tmDeaths, tmDeadList;
+    public TextMesh tmDeaths, tmScoresList, tmDeadList;
     public Timer timer;
     public bool isGameMined { get; private set; }
     public int nbSquaresX, nbSquaresY, nbMines;
@@ -12,8 +15,10 @@ public class Game : MonoBehaviour {
 
     private Square[,] squares;
     private Dictionary<string, float> deadUsersTime;
+    private Dictionary<string, int> usersScore;
     private int nbSquaresChecked, nbDeaths;
 
+    // ========================================================================
     // Game initialization
     void Start() {
         this.isGameMined = false;
@@ -21,10 +26,12 @@ public class Game : MonoBehaviour {
         this.nbDeaths = 0;
         this.squares = new Square[this.nbSquaresX, this.nbSquaresY];
         this.deadUsersTime = new Dictionary<string, float>();
+        this.usersScore = new Dictionary<string, int>();
         this.CreateBorders();
         this.CreateField();
     }
 
+    // ========================================================================
     // Create the borders of the game field
     private void CreateBorders() {
         // Create the top and bottom border squares
@@ -54,6 +61,7 @@ public class Game : MonoBehaviour {
         }
     }
 
+    // ========================================================================
     // Create the game field
     private void CreateField() {
         // Creating all the squares for the mines
@@ -80,6 +88,7 @@ public class Game : MonoBehaviour {
         }
     }
 
+    // ========================================================================
     // Generate the mines of the field
     // Mines are only generated after one square has been checked to prevent it from being a mine
     public void GenerateMines(Square checkedSquare) {
@@ -88,8 +97,8 @@ public class Game : MonoBehaviour {
         // Generating mines until the number of mines we want has been reached
         while (nbMinesGenerated < this.nbMines) {
             // Generating a random position for the mine
-            int indexX = Random.Range(0, this.nbSquaresX);
-            int indexY = Random.Range(0, this.nbSquaresY);
+            int indexX = UnityEngine.Random.Range(0, this.nbSquaresX);
+            int indexY = UnityEngine.Random.Range(0, this.nbSquaresY);
 
             // Checking that this square isn't the one we clicked on and that it doesn't contain a mine already
             if (!this.squares[indexX, indexY].isMined && this.squares[indexX, indexY] != checkedSquare) {
@@ -104,6 +113,7 @@ public class Game : MonoBehaviour {
         this.timer.StartTimer();
     }
     
+    // ========================================================================
     // Called each frame, used to update the dead players timers
     private void Update() {
         // Update the timer of all players and remove the ones with a timer < 0
@@ -124,19 +134,45 @@ public class Game : MonoBehaviour {
             }
             this.tmDeadList.text = deadPlayersList;
         } else {
-            this.tmDeadList.text = "nobody!";
+            this.tmDeadList.text = "-";
         }
     }
 
+    // ========================================================================
+    // Update the score list, called when a player score changed
+    private void UpdateScoreList() {
+        if(this.usersScore.Count > 0) {
+            List<KeyValuePair<string, int>> orderedScores = this.usersScore.OrderBy(x => x.Value).ToList();
+            string scoresList = string.Empty;
+            int count = 0;
+            while (count < orderedScores.Count && count < 6) {
+                scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString();
+                count++;
+            }
+            this.tmScoresList.text = scoresList;
+        } else {
+            this.tmDeadList.text = "-";
+        }        
+    }
+
+    // ========================================================================
     // Called by a user command in Twitch chat
     public void ChatCommand(string user, string command, int x, int y) {
         if(x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
             if (command.Equals("check")) {
-                if(this.squares[x, y].Check()) {
+                if (this.squares[x, y].Check(user) == checkResult.Bomb) {
                     // User checked a mine, kill him for some time
                     this.deadUsersTime.Add(user, this.deadTime);
                     this.nbDeaths++;
                     this.tmDeaths.text = this.nbDeaths.ToString();
+
+                    // Reduce his score by 25%
+                    if(this.usersScore.ContainsKey(user)) {
+                        this.usersScore[user] = (int)Math.Floor(this.usersScore[user] * 0.75f);
+                    } else {
+                        this.usersScore.Add(user, 0);
+                    }
+                    this.UpdateScoreList();
                 }
             } else if(command.Equals("flag")) {
                 this.squares[x, y].Flag();
@@ -146,19 +182,31 @@ public class Game : MonoBehaviour {
         }
     }
 
+    // ========================================================================
     // Called when a new square has been checked
-    public void NewSquareChecked() {
+    public void NewSquareChecked(string user) {
+        // Update user score
+        if(this.usersScore.ContainsKey(user)) {
+            this.usersScore[user]++;
+        } else {
+            this.usersScore.Add(user, 1);
+        }
+        this.UpdateScoreList();
+
+        // Check if all the squares have been checked
         this.nbSquaresChecked++;
         if (this.nbSquaresChecked >= (this.nbSquaresX * this.nbSquaresY - this.nbMines)) {
             this.Victory();
         }
     }
 
+    // ========================================================================
     // Victory, called when all mines have been found
     public void Victory() {
         this.timer.StopTimer();
 		GlobalManager.endScore = this.timer.time;
         GlobalManager.endDeaths = this.nbDeaths;
-		SceneManager.LoadScene("Victory");
+        GlobalManager.orderedScores = this.usersScore.OrderBy(x => x.Value).ToList();
+        SceneManager.LoadScene("Victory");
     }
 }

@@ -6,6 +6,7 @@ public class Timer : MonoBehaviour {
     private TextMesh tm;
     private bool isActive;
 
+    // ========================================================================
     // Timer initialization
     void Start() {
         this.tm = (TextMesh)this.GetComponent("TextMesh");
@@ -13,6 +14,7 @@ public class Timer : MonoBehaviour {
         this.isActive = false;
     }
 
+    // ========================================================================
     // Updating the timer once per frame if it's active
     void Update() {
         if (this.isActive) {
@@ -21,11 +23,13 @@ public class Timer : MonoBehaviour {
         }
     }
 
+    // ========================================================================
     // Start the timer, called when mine have been generated
     public void StartTimer() {
         this.isActive = true;
     }
 
+    // ========================================================================
     // Stop the timer at the end of the game
     public void StopTimer() {
         this.isActive = false;

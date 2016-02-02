@@ -6,20 +6,20 @@ public class TwitchIRC : MonoBehaviour {
 	public string oauth;
 	public string nickName;
 	public string channelName;
-	private string server = "irc.twitch.tv";
-	private int port = 6667;
-
 	public class MsgEvent : UnityEngine.Events.UnityEvent<string> { }
 	public MsgEvent messageReceivedEvent = new MsgEvent();
 
 	private string buffer = string.Empty;
-	private bool stopThreads = false;
+    private string server = "irc.twitch.tv";
+    private int port = 6667;
+    private bool stopThreads = false;
 	private Queue<string> commandQueue = new Queue<string>();
 	private List<string> receivedMsgs = new List<string>();
 	private System.Threading.Thread inProc, outProc;
 
+    // ========================================================================
     // Initialization of the IRC connexion to the Twitch chat
-	private void StartIRC() {
+    private void StartIRC() {
 		System.Net.Sockets.TcpClient sock = new System.Net.Sockets.TcpClient();
 		var result = sock.BeginConnect(this.server, this.port, null, null);
 		var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(5));
@@ -48,7 +48,8 @@ public class TwitchIRC : MonoBehaviour {
 		inProc.Start();
 	}
 
-	private void IRCInputProcedure(System.IO.TextReader input, System.Net.Sockets.NetworkStream networkStream) {
+    // ========================================================================
+    private void IRCInputProcedure(System.IO.TextReader input, System.Net.Sockets.NetworkStream networkStream) {
 		while(!this.stopThreads) {
 			if(!networkStream.DataAvailable)
 				continue;
@@ -74,7 +75,8 @@ public class TwitchIRC : MonoBehaviour {
 		}
 	}
 
-	private void IRCOutputProcedure(System.IO.TextWriter output) {
+    // ========================================================================
+    private void IRCOutputProcedure(System.IO.TextWriter output) {
 		System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
 		stopWatch.Start();
 		while(!this.stopThreads) {
@@ -100,32 +102,38 @@ public class TwitchIRC : MonoBehaviour {
 		}
 	}
 
-	public void SendCommand(string cmd) {
+    // ========================================================================
+    public void SendCommand(string cmd) {
 		lock (commandQueue) {
 			commandQueue.Enqueue(cmd);
 		}
 	}
 
-	public void SendMsg(string msg) {
+    // ========================================================================
+    public void SendMsg(string msg) {
 		lock (commandQueue) {
 			commandQueue.Enqueue("PRIVMSG #" + channelName + " :" + msg);
 		}
 	}
 
-	void OnEnable() {
+    // ========================================================================
+    void OnEnable() {
 		stopThreads = false;
 		StartIRC();
 	}
 
-	void OnDisable() {
+    // ========================================================================
+    void OnDisable() {
 		stopThreads = true;
 	}
 
-	void OnDestroy() {
+    // ========================================================================
+    void OnDestroy() {
 		stopThreads = true;
 	}
 
-	void Update() {
+    // ========================================================================
+    void Update() {
         lock (receivedMsgs) {
             if (receivedMsgs.Count > 0) {
                 for (int i = 0; i < receivedMsgs.Count; i++) {

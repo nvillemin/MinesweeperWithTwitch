@@ -6,13 +6,15 @@ public class TwitchChat : MonoBehaviour {
 	private Game game;
 	private TwitchIRC IRC;
 
-	// Twitch chat initialization
-	private void Start () {
+    // ========================================================================
+    // Twitch chat initialization
+    private void Start () {
 		this.game = this.GetComponentInParent<Game>();
 		this.IRC = this.GetComponent<TwitchIRC>();
 		this.IRC.messageReceivedEvent.AddListener(this.OnChatMsgReceived);
     }
 
+    // ========================================================================
     // When message is received from IRC-server or our own message.
     private void OnChatMsgReceived(string msg) {
         int msgIndex = msg.IndexOf("PRIVMSG #");
@@ -21,6 +23,7 @@ public class TwitchChat : MonoBehaviour {
         this.ParseMessage(user, message);
     }
 
+    // ========================================================================
     // Parse the user message
     private void ParseMessage(string user, string message) {
         string[] command = message.Split(' ');

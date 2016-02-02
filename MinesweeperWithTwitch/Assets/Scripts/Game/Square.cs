@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Global;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Square : MonoBehaviour {
@@ -18,11 +19,13 @@ public class Square : MonoBehaviour {
     private bool isRightButtonDown;
     public int indexX, indexY;
 
+    // ========================================================================
     // Need to create the list right when the square is being instanciated since we will add neighbors
     void Awake() {
         this.neighbors = new List<Square>();
     }
 
+    // ========================================================================
     // Square initialization
     void Start() {
         this.spriteRenderer = this.GetComponent<SpriteRenderer>();
@@ -33,6 +36,7 @@ public class Square : MonoBehaviour {
         this.nbMinesAdj = 0;
     }
 
+    // ========================================================================
     // Initialization of the reference of the game and the indexes
     public void Initialize(Game game, int x, int y) {
         this.game = game;
@@ -40,12 +44,14 @@ public class Square : MonoBehaviour {
         this.indexY = y;
     }
 
+    // ========================================================================
     // Neighbors initialization
     public void AddNeighbor(Square neighbor) {
         this.neighbors.Add(neighbor);
         neighbor.neighbors.Add(this);
     }
 
+    // ========================================================================
     // Right click detection
     // TODO : Remove this after
     void OnMouseOver() {
@@ -59,12 +65,14 @@ public class Square : MonoBehaviour {
         }
     }
 
+    // ========================================================================
     // Left click on the square
     // TODO : Remove this after
     void OnMouseDown() {
         this.game.ChatCommand("ADMIN", "check", this.indexX, this.indexY);
     }
 
+    // ========================================================================
     // Add a mine on this square
     public void AddMine() {
         this.isMined = true;
@@ -73,9 +81,10 @@ public class Square : MonoBehaviour {
         }
     }
 
+    // ========================================================================
     // Check this square
-    // Returns true if the user checked a mine
-    public bool Check() {
+    // Returns Bomb, Success or Impossible
+    public checkResult Check(string user) {
         if(!this.isChecked && !this.isFlagged) {
             // Generate mines if the field doesn't contain any
             if(!this.game.isGameMined) {
@@ -88,7 +97,7 @@ public class Square : MonoBehaviour {
             // There is a mine on this square, defeat
             if (this.isMined) {
                 this.mine = (GameObject)Instantiate(this.minePrefab, this.transform.position, Quaternion.identity);
-                return true;
+                return checkResult.Bomb;
             // There are mines nearby, display the number
             } else if (this.nbMinesAdj > 0) {
                 GameObject nbMinesText = (GameObject)Instantiate(this.nbMinesAdjText, this.transform.position, this.transform.rotation);
@@ -99,15 +108,17 @@ public class Square : MonoBehaviour {
             } else {
                 foreach (Square neighbor in this.neighbors) {
                     if (!neighbor.isChecked) {
-                        neighbor.Check();
+                        neighbor.Check(user);
                     }
                 }
             }
-            this.game.NewSquareChecked();
+            this.game.NewSquareChecked(user);
+            return checkResult.Success;
         }
-        return false;
+        return checkResult.Impossible;
     }
 
+    // ========================================================================
     // Flag this square
     public void Flag() {
         if(!this.isChecked && !this.isFlagged) {
@@ -116,6 +127,7 @@ public class Square : MonoBehaviour {
         }
     }
 
+    // ========================================================================
     // Unflag this square
     public void Unflag() {
         if (!this.isChecked && this.isFlagged) {
