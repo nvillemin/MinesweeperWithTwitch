@@ -131,8 +131,10 @@ public class Game : MonoBehaviour {
         if (this.deadUsersTime.Count > 0) {
             string deadPlayersList = string.Empty;
             deadUsers = new List<string>(this.deadUsersTime.Keys);
-            foreach (string user in deadUsers) {
-                deadPlayersList += user + " - " + this.deadUsersTime[user].ToString("f1") + "\n";
+            int count = 0;
+            while (count < deadUsers.Count && count < 5) {
+                deadPlayersList += deadUsers[count] + " - " + this.deadUsersTime[deadUsers[count]].ToString("f1") + "\n";
+                count++;
             }
             this.tmDeadList.text = deadPlayersList;
         } else {
@@ -147,7 +149,7 @@ public class Game : MonoBehaviour {
             List<KeyValuePair<string, int>> orderedScores = this.usersScore.OrderByDescending(x => x.Value).ToList();
             string scoresList = string.Empty;
             int count = 0;
-            while (count < orderedScores.Count && count < 6) {
+            while (count < orderedScores.Count && count < 5) {
                 scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString() + "\n";
                 count++;
             }
