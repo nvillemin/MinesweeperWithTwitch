@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Square : MonoBehaviour {
     public Sprite checkedSprite;
-    public GameObject nbNearbyMinesText, flagPrefab, minePrefab;
+    public GameObject nbNearbyMinesText, coordinatesText, flagPrefab, minePrefab;
 
     public int nbNearbyMines { get; set; }
     public bool isMined { get; private set; }
@@ -13,17 +13,11 @@ public class Square : MonoBehaviour {
 
     private Game game;
     private SpriteRenderer spriteRenderer;
-    private GameObject flag, mine;
-    private List<Square> neighbors;
+    private GameObject flag, mine, coordinates;
+    private List<Square> neighbors = new List<Square>();
 
-    private bool isRightButtonDown;
+	private bool isRightButtonDown;
     public int indexX, indexY;
-
-    // ========================================================================
-    // Need to create the list right when the square is being instanciated since we will add neighbors
-    void Awake() {
-        this.neighbors = new List<Square>();
-    }
 
     // ========================================================================
     // Square initialization
@@ -42,7 +36,17 @@ public class Square : MonoBehaviour {
         this.game = game;
         this.indexX = x;
         this.indexY = y;
-    }
+		this.CreateCoordinatesText();
+	}
+
+	// ========================================================================
+	// Creates the white text with the coordinates of the square
+	private void CreateCoordinatesText() {
+		this.coordinates = (GameObject)Instantiate(this.coordinatesText, this.transform.position, this.transform.rotation);
+		TextMesh tm = (TextMesh)coordinates.GetComponent("TextMesh");
+		char letter = (char)(this.indexY + 65);
+		tm.text = letter.ToString() + (this.indexX + 1).ToString();
+	}
 
     // ========================================================================
     // Neighbors initialization
@@ -90,6 +94,7 @@ public class Square : MonoBehaviour {
 				this.game.GenerateMines(this);
 			}
 
+			Destroy(this.coordinates);
 			this.isChecked = true;
 			this.spriteRenderer.sprite = this.checkedSprite;
 
@@ -121,8 +126,9 @@ public class Square : MonoBehaviour {
 	// Flag this square
 	public void Flag() {
         if(!this.isChecked && !this.isFlagged) {
-            this.flag = (GameObject)Instantiate(this.flagPrefab, this.transform.position, Quaternion.identity);
-            this.isFlagged = true;
+			Destroy(this.coordinates);
+            this.flag = (GameObject)Instantiate(this.flagPrefab, this.transform.position - new Vector3(0,0,2), Quaternion.identity);
+			this.isFlagged = true;
         }
     }
 
@@ -131,7 +137,8 @@ public class Square : MonoBehaviour {
     public void Unflag() {
         if (!this.isChecked && this.isFlagged) {
             Destroy(this.flag);
-            this.isFlagged = false;
+			this.CreateCoordinatesText();
+			this.isFlagged = false;
         }
     }
 
