@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Threading;
 
 public class TwitchIRC : MonoBehaviour {
 	public string oauth;
@@ -22,7 +23,7 @@ public class TwitchIRC : MonoBehaviour {
     private void StartIRC() {
 		System.Net.Sockets.TcpClient sock = new System.Net.Sockets.TcpClient();
 		var result = sock.BeginConnect(this.server, this.port, null, null);
-		var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(5));
+		var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(10));
 
 		if(!success) {
 			throw new Exception("Failed to connect to " + this.channelName + " Twitch chat.");
@@ -51,28 +52,30 @@ public class TwitchIRC : MonoBehaviour {
     // ========================================================================
     private void IRCInputProcedure(System.IO.TextReader input, System.Net.Sockets.NetworkStream networkStream) {
 		while(!this.stopThreads) {
-			if(!networkStream.DataAvailable)
-				continue;
+            if (!networkStream.DataAvailable) {
+                Thread.Sleep(100); // Check every 100ms, prevent high CPU usage
+                continue;
+            }
 
             this.buffer = input.ReadLine();
 
-			//was message?
-			if(buffer.Contains("PRIVMSG #")) {
-				lock (this.receivedMsgs) {
+            //was message?
+            if (buffer.Contains("PRIVMSG #")) {
+                lock (this.receivedMsgs) {
                     this.receivedMsgs.Add(this.buffer);
-				}
-			}
+                }
+            }
 
-			//Send pong reply to any ping messages
-			if(this.buffer.StartsWith("PING ")) {
-				SendCommand(this.buffer.Replace("PING", "PONG"));
-			}
+            //Send pong reply to any ping messages
+            if (this.buffer.StartsWith("PING ")) {
+                SendCommand(this.buffer.Replace("PING", "PONG"));
+            }
 
-			//After server sends 001 command, we can join a channel
-			if(this.buffer.Split(' ')[1] == "001") {
-				SendCommand("JOIN #" + this.channelName);
-			}
-		}
+            //After server sends 001 command, we can join a channel
+            if (this.buffer.Split(' ')[1] == "001") {
+                SendCommand("JOIN #" + this.channelName);
+            }
+        }
 	}
 
     // ========================================================================
@@ -81,23 +84,22 @@ public class TwitchIRC : MonoBehaviour {
 		stopWatch.Start();
 		while(!this.stopThreads) {
 			lock (this.commandQueue) {
-				if(this.commandQueue.Count > 0) //do we have any commands to send?
-				{
+                // Do we have any commands to send?
+                if (this.commandQueue.Count > 0 && stopWatch.ElapsedMilliseconds > 1750) {
 					// https://github.com/justintv/Twitch-API/blob/master/IRC.md#command--message-limit 
-					//have enough time passed since we last sent a message/command?
-					if(stopWatch.ElapsedMilliseconds > 1750) {
-						// send msg.
-						output.WriteLine(this.commandQueue.Peek());
-						output.Flush();
+					// Send message
+					output.WriteLine(this.commandQueue.Peek());
+					output.Flush();
 
-                        // remove msg from queue.
-                        this.commandQueue.Dequeue();
+                    // remove msg from queue.
+                    this.commandQueue.Dequeue();
 
-						// restart stopwatch.
-						stopWatch.Reset();
-						stopWatch.Start();
-					}
-				}
+					// restart stopwatch.
+					stopWatch.Reset();
+					stopWatch.Start();
+				} else {
+                    Thread.Sleep(900);
+                }
 			}
 		}
 	}
@@ -134,12 +136,12 @@ public class TwitchIRC : MonoBehaviour {
 
     // ========================================================================
     void Update() {
-        lock (receivedMsgs) {
-            if (receivedMsgs.Count > 0) {
-                for (int i = 0; i < receivedMsgs.Count; i++) {
-                    messageReceivedEvent.Invoke(receivedMsgs[i]);
+        lock (this.receivedMsgs) {
+            if (this.receivedMsgs.Count > 0) {
+                for (int i = 0; i < this.receivedMsgs.Count; i++) {
+                    this.messageReceivedEvent.Invoke(this.receivedMsgs[i]);
                 }
-                receivedMsgs.Clear();
+                this.receivedMsgs.Clear();
             }
         }
     }

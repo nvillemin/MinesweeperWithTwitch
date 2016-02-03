@@ -128,7 +128,7 @@ public class Game : MonoBehaviour {
         }
 
         // Update the dead players list
-        if(this.deadUsersTime.Count > 0) {
+        if (this.deadUsersTime.Count > 0) {
             string deadPlayersList = string.Empty;
             deadUsers = new List<string>(this.deadUsersTime.Keys);
             foreach (string user in deadUsers) {

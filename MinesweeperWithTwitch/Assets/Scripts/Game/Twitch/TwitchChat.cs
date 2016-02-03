@@ -9,9 +9,9 @@ public class TwitchChat : MonoBehaviour {
     // ========================================================================
     // Twitch chat initialization
     private void Start () {
-		this.game = this.GetComponentInParent<Game>();
-		this.IRC = this.GetComponent<TwitchIRC>();
-		this.IRC.messageReceivedEvent.AddListener(this.OnChatMsgReceived);
+        this.game = this.GetComponentInParent<Game>();
+        this.IRC = this.GetComponent<TwitchIRC>();
+        this.IRC.messageReceivedEvent.AddListener(this.OnChatMsgReceived);
     }
 
     // ========================================================================
