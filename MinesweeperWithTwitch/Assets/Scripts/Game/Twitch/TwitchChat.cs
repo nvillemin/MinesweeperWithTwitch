@@ -44,8 +44,10 @@ public class TwitchChat : MonoBehaviour {
                         order = "flag";
                     } else if (command[0] == "unflag" || command[0] == "uf") {
                         order = "unflag";
-                    }
-                    this.game.ChatCommand(user, order, number - 1, letterCode - 97);
+                    } else if(command[0] == "clear" || command[0] == "cl") {
+						order = "clear";
+					}
+					this.game.ChatCommand(user, order, number - 1, letterCode - 97);
                 }
             }
         }

@@ -140,7 +140,7 @@ public class Game : MonoBehaviour {
 
     // ========================================================================
     // Update the score list, called when a player score changed
-    private void UpdateScoreList() {
+    public void UpdateScoreList() {
         if(this.usersScore.Count > 0) {
             List<KeyValuePair<string, int>> orderedScores = this.usersScore.OrderByDescending(x => x.Value).ToList();
             string scoresList = string.Empty;
@@ -160,45 +160,58 @@ public class Game : MonoBehaviour {
     public void ChatCommand(string user, string command, int x, int y) {
         if(x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
             if (command.Equals("check")) {
-                if (this.squares[x, y].Check(user) == checkResult.Bomb) {
-                    // User checked a mine, kill him for some time
-                    this.deadUsersTime.Add(user, this.deadTime);
-                    this.nbDeaths++;
-                    this.tmDeaths.text = this.nbDeaths.ToString();
-
-                    // Reduce his score by 25%
-                    if(this.usersScore.ContainsKey(user)) {
-                        this.usersScore[user] = (int)Math.Floor(this.usersScore[user] * 0.75f);
-                    } else {
-                        this.usersScore.Add(user, 0);
-                    }
-                    this.UpdateScoreList();
-                }
+				KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0));
+				if(checkValues.Value > 0) {
+					// User checked a mine, kill him for some time
+					this.KillUser(user);
+					this.UpdateScoreList();
+				} else {
+					this.IncrementUserScore(user, checkValues.Key);
+					this.NewSquaresChecked(checkValues.Key + checkValues.Value);
+				}
             } else if(command.Equals("flag")) {
                 this.squares[x, y].Flag();
             } else if(command.Equals("unflag")) {
                 this.squares[x, y].Unflag();
-            }
-        }
+            } else if(command.Equals("clear")) {
+				this.squares[x, y].Clear(user);
+			}
+		}
     }
 
     // ========================================================================
-    // Called when a new square has been checked
-    public void NewSquareChecked(string user) {
-        // Update user score
-        if(this.usersScore.ContainsKey(user)) {
-            this.usersScore[user]++;
-        } else {
-            this.usersScore.Add(user, 1);
-        }
-        this.UpdateScoreList();
-
-        // Check if all the squares have been checked
-        this.nbSquaresChecked++;
+    // Called when new squares have been checked
+    public void NewSquaresChecked(int nbSquares) {
+		// Check if all the squares have been checked
+		this.nbSquaresChecked += nbSquares;
         if (this.nbSquaresChecked >= (this.nbSquaresX * this.nbSquaresY - this.nbMines)) {
             this.Victory();
         }
     }
+
+	// ========================================================================
+	// Called when a user succesfully checked squares
+	public void IncrementUserScore(string user, int score) {
+		if(this.usersScore.ContainsKey(user)) {
+			this.usersScore[user] += score;
+		} else {
+			this.usersScore.Add(user, score);
+		}
+		this.UpdateScoreList();
+	}
+
+	// ========================================================================
+	// Called when a user checks a bomb, decreases his score by 25%
+	public void KillUser(string user) {
+		this.deadUsersTime.Add(user, this.deadTime);
+		this.nbDeaths++;
+		this.tmDeaths.text = this.nbDeaths.ToString();
+		if(this.usersScore.ContainsKey(user)) {
+			this.usersScore[user] = (int)Math.Floor(this.usersScore[user] * 0.75f);
+		} else {
+			this.usersScore.Add(user, 0);
+		}
+	}
 
     // ========================================================================
     // Victory, called when all mines have been found

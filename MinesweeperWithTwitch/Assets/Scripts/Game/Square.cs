@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class Square : MonoBehaviour {
     public Sprite checkedSprite;
-    public GameObject nbMinesAdjText, flagPrefab, minePrefab;
+    public GameObject nbNearbyMinesText, flagPrefab, minePrefab;
 
-    public int nbMinesAdj { get; set; }
+    public int nbNearbyMines { get; set; }
     public bool isMined { get; private set; }
     public bool isChecked { get; private set; }
     public bool isFlagged { get; private set; }
@@ -33,7 +33,7 @@ public class Square : MonoBehaviour {
         this.isFlagged = false;
         this.isChecked = false;
         this.isRightButtonDown = false;
-        this.nbMinesAdj = 0;
+        this.nbNearbyMines = 0;
     }
 
     // ========================================================================
@@ -77,50 +77,48 @@ public class Square : MonoBehaviour {
     public void AddMine() {
         this.isMined = true;
         foreach(Square neighbor in this.neighbors) {
-            neighbor.nbMinesAdj++;
+            neighbor.nbNearbyMines++;
         }
     }
 
-    // ========================================================================
-    // Check this square
-    // Returns Bomb, Success or Impossible
-    public checkResult Check(string user) {
-        if(!this.isChecked && !this.isFlagged) {
-            // Generate mines if the field doesn't contain any
-            if(!this.game.isGameMined) {
-                this.game.GenerateMines(this);
-            }
+	// ========================================================================
+	// Check this square
+	public KeyValuePair<int, int> Check(KeyValuePair<int, int> checkValues) {
+		if(!this.isChecked && !this.isFlagged) {
+			// Generate the mines if it's the first check of the game
+			if(!this.game.isGameMined) {
+				this.game.GenerateMines(this);
+			}
 
-            this.isChecked = true;
-            this.spriteRenderer.sprite = this.checkedSprite;
+			this.isChecked = true;
+			this.spriteRenderer.sprite = this.checkedSprite;
 
-            // There is a mine on this square, defeat
-            if (this.isMined) {
-                this.mine = (GameObject)Instantiate(this.minePrefab, this.transform.position, Quaternion.identity);
-                return checkResult.Bomb;
-            // There are mines nearby, display the number
-            } else if (this.nbMinesAdj > 0) {
-                GameObject nbMinesText = (GameObject)Instantiate(this.nbMinesAdjText, this.transform.position, this.transform.rotation);
-                TextMesh tm = (TextMesh)nbMinesText.GetComponent("TextMesh");
-                tm.text = this.nbMinesAdj.ToString();
-                tm.color = GlobalManager.minesTextColor[nbMinesAdj - 1]; // -1 because array starts at 0
-            // No mine and also no mines nearby, check the neighbors as well
-            } else {
-                foreach (Square neighbor in this.neighbors) {
-                    if (!neighbor.isChecked) {
-                        neighbor.Check(user);
-                    }
-                }
-            }
-            this.game.NewSquareChecked(user);
-            return checkResult.Success;
-        }
-        return checkResult.Impossible;
-    }
+			// There is a mine on this square, defeat
+			if(this.isMined) {
+				this.mine = (GameObject)Instantiate(this.minePrefab, this.transform.position, Quaternion.identity);
+				return new KeyValuePair<int, int>(checkValues.Key, checkValues.Value + 1);
+			// There are mines nearby, display the number
+			} else if(this.nbNearbyMines > 0) {
+				GameObject nbMinesText = (GameObject)Instantiate(this.nbNearbyMinesText, this.transform.position, this.transform.rotation);
+				TextMesh tm = (TextMesh)nbMinesText.GetComponent("TextMesh");
+				tm.text = this.nbNearbyMines.ToString();
+				tm.color = GlobalManager.minesTextColor[nbNearbyMines - 1]; // -1 because array starts at 0
+				return new KeyValuePair<int, int>(checkValues.Key + 1, checkValues.Value);
+			// No mine and also no mines nearby, check the neighbors as well
+			} else {
+				foreach(Square neighbor in this.neighbors) {
+					if(!neighbor.isChecked) {
+						checkValues = neighbor.Check(checkValues);
+					}
+				}
+			}
+		}
+		return checkValues;
+	}
 
-    // ========================================================================
-    // Flag this square
-    public void Flag() {
+	// ========================================================================
+	// Flag this square
+	public void Flag() {
         if(!this.isChecked && !this.isFlagged) {
             this.flag = (GameObject)Instantiate(this.flagPrefab, this.transform.position, Quaternion.identity);
             this.isFlagged = true;
@@ -135,4 +133,43 @@ public class Square : MonoBehaviour {
             this.isFlagged = false;
         }
     }
+
+	// ========================================================================
+	// Clear this square if all nearby mines have been flagged
+	public void Clear(string user) {
+		if (this.isChecked) {
+			// Check the number of flags or checked bombs in the nearby squares
+			int nearbyFlags = 0;
+			foreach(Square neighbor in this.neighbors) {
+				if(neighbor.isFlagged || (neighbor.isChecked && neighbor.isMined)) {
+					nearbyFlags++;
+				}
+			}
+
+			// Clear is possible, check neighbors
+			if(nearbyFlags == this.nbNearbyMines) {
+				// Check neighbors and get the number of successful checks and the number of bombs checked
+				KeyValuePair<int, int> checkValues = new KeyValuePair<int, int>(0, 0);
+				foreach(Square neighbor in this.neighbors) {
+					if(!neighbor.isChecked) {
+						checkValues = neighbor.Check(checkValues);
+					}
+				}
+
+				// No bombs checked, increase user score
+				if(checkValues.Value == 0) {
+					this.game.IncrementUserScore(user, checkValues.Key);
+				// At least one bomb checked, decrease user score for each bomb
+				} else {
+					for(int i=0; i<checkValues.Value; ++i) {
+						this.game.KillUser(user);
+						this.game.UpdateScoreList();
+					}
+				}
+				this.game.NewSquaresChecked(checkValues.Key + checkValues.Value);
+			}
+		}
+	}
+
+	
 }
