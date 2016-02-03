@@ -106,6 +106,7 @@ public class Square : MonoBehaviour {
 				return new KeyValuePair<int, int>(checkValues.Key + 1, checkValues.Value);
 			// No mine and also no mines nearby, check the neighbors as well
 			} else {
+				checkValues = new KeyValuePair<int, int>(checkValues.Key + 1, checkValues.Value);
 				foreach(Square neighbor in this.neighbors) {
 					if(!neighbor.isChecked) {
 						checkValues = neighbor.Check(checkValues);

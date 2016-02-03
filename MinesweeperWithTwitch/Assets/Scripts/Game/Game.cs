@@ -161,8 +161,8 @@ public class Game : MonoBehaviour {
         if(x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
             if (command.Equals("check")) {
 				KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0));
+				// User checked a mine, kill him for some time
 				if(checkValues.Value > 0) {
-					// User checked a mine, kill him for some time
 					this.KillUser(user);
 					this.UpdateScoreList();
 				} else {
@@ -184,7 +184,8 @@ public class Game : MonoBehaviour {
     public void NewSquaresChecked(int nbSquares) {
 		// Check if all the squares have been checked
 		this.nbSquaresChecked += nbSquares;
-        if (this.nbSquaresChecked >= (this.nbSquaresX * this.nbSquaresY - this.nbMines)) {
+		int nbSquaresNeeded = (this.nbSquaresX * this.nbSquaresY) - this.nbMines;
+		if (this.nbSquaresChecked >= nbSquaresNeeded) {
             this.Victory();
         }
     }
