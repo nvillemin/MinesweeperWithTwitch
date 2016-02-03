@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour {
     public GameObject squarePrefab, borderSquarePrefab, borderTextPrefab;
-    public TextMesh tmDeaths, tmScoresList, tmDeadList;
+    public TextMesh tmDeaths, tmScoresList, tmDeadList, tmChecked;
     public Timer timer;
     public bool isGameMined { get; private set; }
     public int nbSquaresX, nbSquaresY, nbMines;
@@ -16,14 +16,16 @@ public class Game : MonoBehaviour {
     private Square[,] squares;
     private Dictionary<string, float> deadUsersTime;
     private Dictionary<string, int> usersScore;
-    private int nbSquaresChecked, nbDeaths;
+    private int nbSquaresChecked, nbSquaresNeeded, nbDeaths;
 
     // ========================================================================
     // Game initialization
     void Start() {
         this.isGameMined = false;
+		this.nbSquaresNeeded = (this.nbSquaresX * this.nbSquaresY) - this.nbMines;
         this.nbSquaresChecked = 0;
-        this.nbDeaths = 0;
+		this.tmChecked.text = this.nbSquaresChecked.ToString() + " / " + this.nbSquaresNeeded.ToString();
+		this.nbDeaths = 0;
         this.squares = new Square[this.nbSquaresX, this.nbSquaresY];
         this.deadUsersTime = new Dictionary<string, float>();
         this.usersScore = new Dictionary<string, int>();
@@ -184,8 +186,8 @@ public class Game : MonoBehaviour {
     public void NewSquaresChecked(int nbSquares) {
 		// Check if all the squares have been checked
 		this.nbSquaresChecked += nbSquares;
-		int nbSquaresNeeded = (this.nbSquaresX * this.nbSquaresY) - this.nbMines;
-		if (this.nbSquaresChecked >= nbSquaresNeeded) {
+		this.tmChecked.text = this.nbSquaresChecked.ToString() + " / " + this.nbSquaresNeeded.ToString();
+		if (this.nbSquaresChecked >= this.nbSquaresNeeded) {
             this.Victory();
         }
     }
