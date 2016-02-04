@@ -13,17 +13,20 @@ public class Game : MonoBehaviour {
     public TextMesh tmDeaths, tmScoresList, tmDeadList, tmChecked;
     public Timer timer;
     public bool isGameMined { get; private set; }
-    public int nbSquaresX, nbSquaresY, nbMines, nbBestTimes;
+    public int nbSquares, nbMines, nbBestTimes;
     public float deadTime;
 
     private Square[,] squares;
     private Dictionary<string, float> deadUsersTime;
     private Dictionary<string, int> userScores;
-    private int nbSquaresChecked, nbSquaresNeeded, nbDeaths;
+    private int nbSquaresX, nbSquaresY, nbSquaresChecked, nbSquaresNeeded, nbDeaths;
+
 
     // ========================================================================
     // Game initialization
     void Start() {
+        this.nbSquaresX = this.nbSquares / 14;
+        this.nbSquaresY = this.nbSquares / 20;
         this.isGameMined = false;
 		this.nbSquaresNeeded = (this.nbSquaresX * this.nbSquaresY) - this.nbMines;
         this.nbSquaresChecked = 0;
