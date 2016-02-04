@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,7 +18,7 @@ public class Game : MonoBehaviour {
 
     private Square[,] squares;
     private Dictionary<string, float> deadUsersTime;
-    private Dictionary<string, int> usersScore;
+    private Dictionary<string, int> userScores;
     private int nbSquaresChecked, nbSquaresNeeded, nbDeaths;
 
     // ========================================================================
@@ -29,9 +31,10 @@ public class Game : MonoBehaviour {
 		this.nbDeaths = 0;
         this.squares = new Square[this.nbSquaresX, this.nbSquaresY];
         this.deadUsersTime = new Dictionary<string, float>();
-        this.usersScore = new Dictionary<string, int>();
+        this.userScores = new Dictionary<string, int>();
         this.CreateBorders();
         this.CreateField();
+		GlobalManager.globalScores = this.InitializeGlobalScores();
     }
 
     // ========================================================================
@@ -91,10 +94,23 @@ public class Game : MonoBehaviour {
         }
     }
 
-    // ========================================================================
-    // Generate the mines of the field
-    // Mines are only generated after one square has been checked to prevent it from being a mine
-    public void GenerateMines(Square checkedSquare) {
+	// ========================================================================
+	// Deserialize the all time player scores
+	private UserScores InitializeGlobalScores() {
+		if(File.Exists("Data/UserScores")) {
+			IFormatter formatter = new BinaryFormatter();
+			Stream stream = new FileStream("Data/UserScores", FileMode.Open, FileAccess.Read, FileShare.Read);
+			UserScores scores = (UserScores)formatter.Deserialize(stream);
+			stream.Close();
+			return scores;
+		}
+		return new UserScores();
+	}
+
+	// ========================================================================
+	// Generate the mines of the field
+	// Mines are only generated after one square has been checked to prevent it from being a mine
+	public void GenerateMines(Square checkedSquare) {
         int nbMinesGenerated = 0;
 
         // Generating mines until the number of mines we want has been reached
@@ -146,8 +162,8 @@ public class Game : MonoBehaviour {
     // ========================================================================
     // Update the score list, called when a player score changed
     public void UpdateScoreList() {
-        if(this.usersScore.Count > 0) {
-            List<KeyValuePair<string, int>> orderedScores = this.usersScore.OrderByDescending(x => x.Value).ToList();
+        if(this.userScores.Count > 0) {
+            List<KeyValuePair<string, int>> orderedScores = this.userScores.OrderByDescending(x => x.Value).ToList();
             string scoresList = string.Empty;
             int count = 0;
             while (count < orderedScores.Count && count < 5) {
@@ -198,10 +214,10 @@ public class Game : MonoBehaviour {
 	// ========================================================================
 	// Called when a user succesfully checked squares
 	public void IncrementUserScore(string user, int score) {
-		if(this.usersScore.ContainsKey(user)) {
-			this.usersScore[user] += score;
+		if(this.userScores.ContainsKey(user)) {
+			this.userScores[user] += score;
 		} else {
-			this.usersScore.Add(user, score);
+			this.userScores.Add(user, score);
 		}
 		this.UpdateScoreList();
 	}
@@ -212,10 +228,10 @@ public class Game : MonoBehaviour {
 		this.deadUsersTime.Add(user, this.deadTime);
 		this.nbDeaths++;
 		this.tmDeaths.text = this.nbDeaths.ToString();
-		if(this.usersScore.ContainsKey(user)) {
-			this.usersScore[user] = (int)Math.Floor(this.usersScore[user] * 0.75f);
+		if(this.userScores.ContainsKey(user)) {
+			this.userScores[user] = (int)Math.Floor(this.userScores[user] * 0.75f);
 		} else {
-			this.usersScore.Add(user, 0);
+			this.userScores.Add(user, 0);
 		}
 	}
 
@@ -224,9 +240,10 @@ public class Game : MonoBehaviour {
     public void Victory() {
         this.timer.StopTimer();
 		this.RegisterTime();
+		this.RegisterScores();
 		GlobalManager.endScore = this.timer.time;
         GlobalManager.endDeaths = this.nbDeaths;
-        GlobalManager.orderedScores = this.usersScore.OrderByDescending(x => x.Value).ToList();
+        GlobalManager.gameScores = this.userScores.OrderByDescending(x => x.Value).ToList();
         SceneManager.LoadScene("Victory");
     }
 
@@ -272,5 +289,20 @@ public class Game : MonoBehaviour {
 		} else {
 			File.WriteAllText(timesFile.FullName, newTime);
 		}
+	}
+
+	// ========================================================================
+	// Registering the scores of all players, called at the end of the game
+	private void RegisterScores() {
+		// Update the score of all players of this game
+		foreach(string user in this.userScores.Keys) {
+			GlobalManager.globalScores.AddScore(user, this.userScores[user]);
+		}
+
+		// Serialize the scores to keep them for later
+		IFormatter formatter = new BinaryFormatter();
+		Stream stream = new FileStream("Data/UserScores", FileMode.Create, FileAccess.Write, FileShare.None);
+		formatter.Serialize(stream, GlobalManager.globalScores);
+		stream.Close();
 	}
 }

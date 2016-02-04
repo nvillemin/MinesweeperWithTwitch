@@ -19,6 +19,7 @@ namespace Global {
         // Values for the end of the game
         public static float endScore;
         public static int endDeaths;
-        public static List<KeyValuePair<string, int>> orderedScores;
+        public static List<KeyValuePair<string, int>> gameScores;
+		public static UserScores globalScores;
     }
 }
