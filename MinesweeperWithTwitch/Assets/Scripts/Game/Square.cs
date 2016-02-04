@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Square : MonoBehaviour {
-    public Sprite checkedSprite;
     public GameObject nbNearbyMinesText, coordinatesText, flagPrefab, minePrefab;
 
     public int nbNearbyMines { get; set; }
@@ -96,7 +95,7 @@ public class Square : MonoBehaviour {
 
 			Destroy(this.coordinates);
 			this.isChecked = true;
-			this.spriteRenderer.sprite = this.checkedSprite;
+            this.spriteRenderer.color = new Color(255, 255, 255);
 
 			// There is a mine on this square, defeat
 			if(this.isMined) {
