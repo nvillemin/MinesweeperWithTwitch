@@ -13,7 +13,7 @@ public class Square : MonoBehaviour {
 
     private Game game;
     private SpriteRenderer spriteRenderer;
-    private GameObject flag, coordinates;
+    private GameObject flag, mine, coordinates;
     private List<Square> neighbors = new List<Square>();
 
 	private bool isRightButtonDown;
@@ -100,7 +100,7 @@ public class Square : MonoBehaviour {
 
 			// There is a mine on this square, defeat
 			if(this.isMined) {
-                Instantiate(this.minePrefab, this.transform.position, Quaternion.identity);
+				this.mine = (GameObject)Instantiate(this.minePrefab, this.transform.position, Quaternion.identity);
 				return new KeyValuePair<int, int>(checkValues.Key, checkValues.Value + 1);
 			// There are mines nearby, display the number
 			} else if(this.nbNearbyMines > 0) {

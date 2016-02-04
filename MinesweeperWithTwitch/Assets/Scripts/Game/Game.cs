@@ -1,6 +1,7 @@
 ﻿using Global;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,7 +11,7 @@ public class Game : MonoBehaviour {
     public TextMesh tmDeaths, tmScoresList, tmDeadList, tmChecked;
     public Timer timer;
     public bool isGameMined { get; private set; }
-    public int nbSquaresX, nbSquaresY, nbMines;
+    public int nbSquaresX, nbSquaresY, nbMines, nbBestTimes;
     public float deadTime;
 
     private Square[,] squares;
@@ -222,9 +223,54 @@ public class Game : MonoBehaviour {
     // Victory, called when all mines have been found
     public void Victory() {
         this.timer.StopTimer();
+		this.RegisterTime();
 		GlobalManager.endScore = this.timer.time;
         GlobalManager.endDeaths = this.nbDeaths;
         GlobalManager.orderedScores = this.usersScore.OrderByDescending(x => x.Value).ToList();
         SceneManager.LoadScene("Victory");
     }
+
+	// ========================================================================
+	// Registering the time spent to complete the game and the number of deaths
+	private void RegisterTime() {
+		string newTime = this.nbDeaths.ToString() + ";" + this.timer.time.ToString("f3") + "\n";
+		FileInfo timesFile = new FileInfo("Data/bestTimes.txt");
+		timesFile.Directory.Create();
+
+		if(timesFile.Exists) {
+			string[] lines = File.ReadAllLines(timesFile.FullName);
+			int nbLines = lines.Length;
+			List<KeyValuePair<int, float>> lineValues = new List<KeyValuePair<int, float>>();
+
+			for(int i=0; i< nbLines; ++i) {
+				string[] values = lines[i].Split(';');
+				lineValues.Add(new KeyValuePair<int, float>(Int32.Parse(values[0]), float.Parse(values[1])));
+			}
+
+			bool newBestTime = false;
+			if(nbLines < this.nbBestTimes) {
+				lineValues.Add(new KeyValuePair<int, float>(this.nbDeaths, this.timer.time));
+				lineValues = lineValues.OrderBy(x => x.Key).ThenBy(x => x.Value).ToList();
+				newBestTime = true;
+			} else {
+				int worstDeaths = lineValues[nbLines - 1].Key;
+				float worstTime = lineValues[nbLines - 1].Value;
+
+				if(worstDeaths > this.nbDeaths || (worstDeaths == this.nbDeaths && worstTime > this.timer.time)) {
+					lineValues[this.nbBestTimes - 1] = new KeyValuePair<int, float>(this.nbDeaths, this.timer.time);
+					lineValues = lineValues.OrderBy(x => x.Key).ThenBy(x => x.Value).ToList();
+					newBestTime = true;
+				}
+			}
+
+			if(newBestTime) {
+				File.WriteAllText(timesFile.FullName, string.Empty);
+				foreach(KeyValuePair<int, float> values in lineValues) {
+					File.AppendAllText(timesFile.FullName, values.Key.ToString() + ";" + values.Value.ToString("f3") + "\n");
+				}
+			}
+		} else {
+			File.WriteAllText(timesFile.FullName, newTime);
+		}
+	}
 }
