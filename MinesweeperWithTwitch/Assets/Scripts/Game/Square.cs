@@ -13,7 +13,7 @@ public class Square : MonoBehaviour {
 
     private Game game;
     private SpriteRenderer spriteRenderer;
-    private GameObject flag, mine, coordinates;
+    private GameObject flag, coordinates;
     private List<Square> neighbors = new List<Square>();
 
 	private bool isRightButtonDown;
@@ -42,7 +42,7 @@ public class Square : MonoBehaviour {
 	// ========================================================================
 	// Creates the white text with the coordinates of the square
 	private void CreateCoordinatesText() {
-		this.coordinates = (GameObject)Instantiate(this.coordinatesText, this.transform.position, this.transform.rotation);
+		this.coordinates = (GameObject)Instantiate(this.coordinatesText, this.transform.position - new Vector3(0, 0, 1), this.transform.rotation);
 		TextMesh tm = (TextMesh)coordinates.GetComponent("TextMesh");
 		char letter = (char)(this.indexY + 65);
 		tm.text = letter.ToString() + (this.indexX + 1).ToString();
@@ -100,11 +100,11 @@ public class Square : MonoBehaviour {
 
 			// There is a mine on this square, defeat
 			if(this.isMined) {
-				this.mine = (GameObject)Instantiate(this.minePrefab, this.transform.position, Quaternion.identity);
+				Instantiate(this.minePrefab, this.transform.position - new Vector3(0, 0, 1), Quaternion.identity);
 				return new KeyValuePair<int, int>(checkValues.Key, checkValues.Value + 1);
 			// There are mines nearby, display the number
 			} else if(this.nbNearbyMines > 0) {
-				GameObject nbMinesText = (GameObject)Instantiate(this.nbNearbyMinesText, this.transform.position, this.transform.rotation);
+				GameObject nbMinesText = (GameObject)Instantiate(this.nbNearbyMinesText, this.transform.position - new Vector3(0, 0, 1), this.transform.rotation);
 				TextMesh tm = (TextMesh)nbMinesText.GetComponent("TextMesh");
 				tm.text = this.nbNearbyMines.ToString();
 				tm.color = GlobalManager.minesTextColor[nbNearbyMines - 1]; // -1 because array starts at 0
@@ -127,7 +127,7 @@ public class Square : MonoBehaviour {
 	public void Flag() {
         if(!this.isChecked && !this.isFlagged) {
 			Destroy(this.coordinates);
-            this.flag = (GameObject)Instantiate(this.flagPrefab, this.transform.position - new Vector3(0,0,2), Quaternion.identity);
+            this.flag = (GameObject)Instantiate(this.flagPrefab, this.transform.position - new Vector3(0, 0, 1), Quaternion.identity);
 			this.isFlagged = true;
         }
     }

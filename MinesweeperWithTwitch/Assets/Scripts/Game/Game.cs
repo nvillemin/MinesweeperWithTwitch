@@ -47,7 +47,7 @@ public class Game : MonoBehaviour {
 
                 // Create the number in the square
                 if (i > 0 && i < this.nbSquaresX + 1) {
-                    GameObject nbMinesTextTop = (GameObject)Instantiate(this.borderTextPrefab, borderSquare.transform.position, this.transform.rotation);
+                    GameObject nbMinesTextTop = (GameObject)Instantiate(this.borderTextPrefab, borderSquare.transform.position - new Vector3(0, 0, 1), this.transform.rotation);
                     ((TextMesh)nbMinesTextTop.GetComponent("TextMesh")).text = i.ToString();
                 }
             }
