@@ -1,5 +1,6 @@
 # MinesweeperWithTwitch
-Minesweeper played with Twitch chat.
+Minesweeper played with Twitch chat  
+This game is streamed on [PlayWithTwitch](http://www.twitch.tv/playwithtwitch)
 
 ##Features
 TODO
@@ -8,7 +9,8 @@ TODO
 TODO
 
 ##Credits
-TwitchIRC class originaly by [Grahnz](https://github.com/Grahnz)
+TwitchIRC original class by [Grahnz](https://github.com/Grahnz)  
+Bomb and Flag design by [Office57](https://www.assetstore.unity3d.com/en/#!/content/36440)
 
 ##License
 MinesweeperWithTwitch: [MIT License](https://github.com/nvillemin/MinesweeperWithTwitch/blob/master/LICENSE.txt)  
