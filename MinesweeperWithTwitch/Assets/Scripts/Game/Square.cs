@@ -88,9 +88,14 @@ public class Square : MonoBehaviour {
 	// Check this square
 	public KeyValuePair<int, int> Check(KeyValuePair<int, int> checkValues) {
 		if(!this.isChecked && !this.isFlagged) {
+			
 			// Generate the mines if it's the first check of the game
 			if(!this.game.isGameMined) {
-				this.game.GenerateMines(this);
+				if(this.game.nbMines >= this.game.nbSquares - 9) {
+					throw new System.Exception("Too many mines!");
+				} else {
+					this.game.GenerateMines(this);
+				}
 			}
 
 			Destroy(this.coordinates);
@@ -178,5 +183,5 @@ public class Square : MonoBehaviour {
 		}
 	}
 
-	
+	public List<Square> GetNeighbors() { return this.neighbors;  }
 }

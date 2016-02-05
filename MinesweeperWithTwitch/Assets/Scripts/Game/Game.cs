@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour {
-    public GameObject squarePrefab, borderSquarePrefab, borderTextPrefab;
+	public GameObject squarePrefab, borderSquarePrefab, borderTextPrefab;
     public TextMesh tmDeaths, tmScoresList, tmDeadList, tmChecked;
     public Timer timer;
     public bool isGameMined { get; private set; }
@@ -20,7 +20,6 @@ public class Game : MonoBehaviour {
     private Dictionary<string, float> deadUsersTime;
     private Dictionary<string, int> userScores;
     private int nbSquaresX, nbSquaresY, nbSquaresChecked, nbSquaresNeeded, nbDeaths;
-
 
     // ========================================================================
     // Game initialization
@@ -123,7 +122,8 @@ public class Game : MonoBehaviour {
             int indexY = UnityEngine.Random.Range(0, this.nbSquaresY);
 
             // Checking that this square isn't the one we clicked on and that it doesn't contain a mine already
-            if (!this.squares[indexX, indexY].isMined && this.squares[indexX, indexY] != checkedSquare) {
+            if (!this.squares[indexX, indexY].isMined && this.squares[indexX, indexY] != checkedSquare
+				&& !checkedSquare.GetNeighbors().Contains(this.squares[indexX, indexY])) {
                 // Adding the mine on the square
                 this.squares[indexX, indexY].AddMine();
                 nbMinesGenerated++;
@@ -228,7 +228,12 @@ public class Game : MonoBehaviour {
 	// ========================================================================
 	// Called when a user checks a bomb, decreases his score by 25%
 	public void KillUser(string user) {
-		this.deadUsersTime.Add(user, this.deadTime);
+		if(!this.deadUsersTime.Keys.Contains(user)) {
+			this.deadUsersTime.Add(user, this.deadTime);
+		} else {
+			this.deadUsersTime[user] = this.deadTime;
+		}
+		
 		this.nbDeaths++;
 		this.tmDeaths.text = this.nbDeaths.ToString();
 		if(this.userScores.ContainsKey(user)) {
