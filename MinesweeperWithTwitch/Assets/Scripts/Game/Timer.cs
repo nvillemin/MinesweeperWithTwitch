@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Global;
 
 public class Timer : MonoBehaviour {
 	public float time { get; private set; }
@@ -19,7 +20,7 @@ public class Timer : MonoBehaviour {
     void Update() {
         if (this.isActive) {
             this.time += Time.deltaTime;
-            this.tm.text = time.ToString("f3"); // f3 means 3 decimals
+            this.tm.text = GlobalManager.TimeToString(this.time);
         }
     }
 

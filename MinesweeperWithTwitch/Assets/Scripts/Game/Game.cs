@@ -249,7 +249,7 @@ public class Game : MonoBehaviour {
         this.timer.StopTimer();
 		this.RegisterTime();
 		this.RegisterScores();
-		GlobalManager.endScore = this.timer.time;
+		GlobalManager.endTime = GlobalManager.TimeToString(this.timer.time);
         GlobalManager.endDeaths = this.nbDeaths;
         GlobalManager.gameScores = this.userScores.OrderByDescending(x => x.Value).ToList();
         SceneManager.LoadScene("Victory");

@@ -10,7 +10,7 @@ public class Victory : MonoBehaviour {
     // ========================================================================
     // Victory scene initialization
     private void Start () {
-		this.tmScore.text = GlobalManager.endScore.ToString("f3"); // f3 means 3 decimals
+		this.tmScore.text = GlobalManager.endTime; // f3 means 3 decimals
         this.tmDeaths.text = GlobalManager.endDeaths.ToString();
 
         List<KeyValuePair<string, int>> orderedScores = GlobalManager.gameScores;
@@ -32,8 +32,8 @@ public class Victory : MonoBehaviour {
 		string timesText = string.Empty;
 
 		foreach(string line in lines) {
-			string newLine = line.Replace(";", ") ");
-			timesText += "(" + newLine + "\n";
+            string[] parts = line.Split(';');
+            timesText += "(" + parts[0] + ") " + GlobalManager.TimeToString(float.Parse(parts[1])) + "\n";
 		}
 
 		return timesText;

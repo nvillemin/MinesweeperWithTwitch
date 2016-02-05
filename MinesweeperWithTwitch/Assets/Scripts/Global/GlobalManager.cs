@@ -17,9 +17,28 @@ namespace Global {
         };
 
         // Values for the end of the game
-        public static float endScore;
+        public static string endTime;
         public static int endDeaths;
         public static List<KeyValuePair<string, int>> gameScores;
 		public static UserScores globalScores;
+
+        // ========================================================================
+        // Convert a float to a string with hours, minutes and seconds
+        public static string TimeToString(float time) {
+            int hours = (int)time / 3600;
+            int minutes = (int)(time / 60) % 60;
+            int seconds = (int)time % 60;
+
+            string timeString = string.Empty;
+            if (hours > 0) {
+                timeString += hours.ToString() + "h ";
+            }
+            if (minutes > 0) {
+                timeString += minutes.ToString() + "m ";
+            }
+            timeString += seconds.ToString() + "s";
+
+            return timeString;
+        }
     }
 }
