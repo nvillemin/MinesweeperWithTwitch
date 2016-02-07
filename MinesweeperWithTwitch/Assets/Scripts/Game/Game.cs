@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour {
-	public GameObject squarePrefab, borderSquarePrefab, borderTextPrefab;
+	public GameObject twitchPrefab, squarePrefab, borderSquarePrefab, borderTextPrefab;
     public TextMesh tmDeaths, tmScoresList, tmDeadList, tmChecked;
     public Timer timer;
     public bool isGameMined { get; private set; }
@@ -24,6 +24,11 @@ public class Game : MonoBehaviour {
     // ========================================================================
     // Game initialization
     void Start() {
+        // TwitchIRC initialization
+        if(GlobalManager.twitch == null) {
+            GlobalManager.twitch = (TwitchIRC)((GameObject)Instantiate(this.twitchPrefab, new Vector3(0, 0, 0), Quaternion.identity)).GetComponent("TwitchIRC");
+        }
+        GlobalManager.twitch.game = this;
         this.nbSquaresX = this.nbSquares / 14;
         this.nbSquaresY = this.nbSquares / 20;
         this.isGameMined = false;
@@ -37,6 +42,7 @@ public class Game : MonoBehaviour {
         this.CreateBorders();
         this.CreateField();
 		GlobalManager.globalScores = this.InitializeGlobalScores();
+        GlobalManager.twitch.SendMsg("New game started with " + this.nbSquares.ToString() + " squares and " + this.nbMines.ToString() + " mines! GL & HF!");
     }
 
     // ========================================================================
@@ -187,7 +193,7 @@ public class Game : MonoBehaviour {
 				KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0));
 				// User checked a mine, kill him for some time
 				if(checkValues.Value > 0) {
-					this.KillUser(user);
+					this.KillUser(user, x, y);
 					this.UpdateScoreList();
 				} else {
 					this.IncrementUserScore(user, checkValues.Key);
@@ -227,7 +233,7 @@ public class Game : MonoBehaviour {
 
 	// ========================================================================
 	// Called when a user checks a bomb, decreases his score by 25%
-	public void KillUser(string user) {
+	public void KillUser(string user, int x, int y) {
 		if(!this.deadUsersTime.Keys.Contains(user)) {
 			this.deadUsersTime.Add(user, this.deadTime);
 		} else {
@@ -241,6 +247,12 @@ public class Game : MonoBehaviour {
 		} else {
 			this.userScores.Add(user, 0);
 		}
+
+        // Send a message in chat telling the player that he died
+        char squareLetter = (char)(y + 65);
+        string message = "KAPOW " + user + ", you just checked a bomb in " + squareLetter + (x + 1).ToString() +
+            " and died. You can't play for 60 seconds and your score has been reduced by 25%. EleGiggle";
+        GlobalManager.twitch.SendMsg(message);
 	}
 
     // ========================================================================

@@ -174,7 +174,7 @@ public class Square : MonoBehaviour {
 				// At least one bomb checked, decrease user score for each bomb
 				} else {
 					for(int i=0; i<checkValues.Value; ++i) {
-						this.game.KillUser(user);
+						this.game.KillUser(user, this.indexX, this.indexY);
 						this.game.UpdateScoreList();
 					}
 				}

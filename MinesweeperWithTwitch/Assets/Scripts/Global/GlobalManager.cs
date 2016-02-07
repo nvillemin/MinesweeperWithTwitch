@@ -4,6 +4,9 @@ using UnityEngine;
 namespace Global {
     // Static class used to store global variables
     public static class GlobalManager {
+        // TwitchIRC, must be kept between scenes
+        public static TwitchIRC twitch;
+
         // Text colors for the number of mines nearby
         public static readonly Color[] minesTextColor = {
             new Color(0, 0.35f, 1), // 1

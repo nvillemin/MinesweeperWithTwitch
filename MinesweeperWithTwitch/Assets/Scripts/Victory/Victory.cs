@@ -10,7 +10,9 @@ public class Victory : MonoBehaviour {
     // ========================================================================
     // Victory scene initialization
     private void Start () {
-		this.tmScore.text = GlobalManager.endTime; // f3 means 3 decimals
+        GlobalManager.twitch.victory = this;
+        GlobalManager.twitch.SendMsg("You did it! The game was cleared in " + GlobalManager.endTime + ". New game starting in 30 seconds.");
+        this.tmScore.text = GlobalManager.endTime; // f3 means 3 decimals
         this.tmDeaths.text = GlobalManager.endDeaths.ToString();
 
         List<KeyValuePair<string, int>> orderedScores = GlobalManager.gameScores;
@@ -23,7 +25,7 @@ public class Victory : MonoBehaviour {
         this.tmScoresList.text = scoresList;
 		this.tmTimesList.text = this.GetBestTimes();
 		this.tmBestPlayersList.text = this.GetBestPlayers();
-	}
+    }
 
 	// ========================================================================
 	// Get the best times from the file

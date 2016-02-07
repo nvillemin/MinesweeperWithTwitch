@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using System.Threading;
+using System.IO;
 
 public class TwitchIRC : MonoBehaviour {
 	public string oauth;
@@ -10,13 +11,23 @@ public class TwitchIRC : MonoBehaviour {
 	public class MsgEvent : UnityEngine.Events.UnityEvent<string> { }
 	public MsgEvent messageReceivedEvent = new MsgEvent();
 
-	private string buffer = string.Empty;
+    // Scenes
+    public Game game { set; get; }
+    public Victory victory { set; get; }
+
+    private string buffer = string.Empty;
     private string server = "irc.twitch.tv";
     private int port = 6667;
     private bool stopThreads = false;
 	private Queue<string> commandQueue = new Queue<string>();
 	private List<string> receivedMsgs = new List<string>();
 	private System.Threading.Thread inProc, outProc;
+
+    // ========================================================================
+    // Keep it active between scenes
+    private void Awake() {
+        DontDestroyOnLoad(transform.gameObject);
+    }
 
     // ========================================================================
     // Initialization of the IRC connexion to the Twitch chat
@@ -51,7 +62,7 @@ public class TwitchIRC : MonoBehaviour {
 
     // ========================================================================
     private void IRCInputProcedure(System.IO.TextReader input, System.Net.Sockets.NetworkStream networkStream) {
-		while(!this.stopThreads) {
+        while (!this.stopThreads) {
             if (!networkStream.DataAvailable) {
                 Thread.Sleep(100); // Check every 100ms, prevent high CPU usage
                 continue;
@@ -81,41 +92,40 @@ public class TwitchIRC : MonoBehaviour {
     // ========================================================================
     private void IRCOutputProcedure(System.IO.TextWriter output) {
 		System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
-		stopWatch.Start();
-		while(!this.stopThreads) {
-			lock (this.commandQueue) {
-                // Do we have any commands to send?
-                if (this.commandQueue.Count > 0 && stopWatch.ElapsedMilliseconds > 1750) {
-					// https://github.com/justintv/Twitch-API/blob/master/IRC.md#command--message-limit 
-					// Send message
-					output.WriteLine(this.commandQueue.Peek());
-					output.Flush();
+        bool firstTime = true;
+        while (!this.stopThreads) {
+            // Do we have any commands to send?
+            if (this.commandQueue.Count > 0 && (stopWatch.ElapsedMilliseconds > 1750 || firstTime)) {
+                // https://github.com/justintv/Twitch-API/blob/master/IRC.md#command--message-limit 
 
-                    // remove msg from queue.
-                    this.commandQueue.Dequeue();
-
-					// restart stopwatch.
-					stopWatch.Reset();
-					stopWatch.Start();
-				} else {
-                    Thread.Sleep(900);
+                if(firstTime) {
+                    firstTime = false;
                 }
-			}
+
+                // Send message
+                output.WriteLine(this.commandQueue.Peek());
+				output.Flush();
+
+                // Remove message from queue
+                this.commandQueue.Dequeue();
+
+				// Restart stopwatch
+				stopWatch.Reset();
+				stopWatch.Start();
+			} else {
+                Thread.Sleep(900);
+            }
 		}
 	}
 
     // ========================================================================
     public void SendCommand(string cmd) {
-		lock (commandQueue) {
-			commandQueue.Enqueue(cmd);
-		}
+		commandQueue.Enqueue(cmd);
 	}
 
     // ========================================================================
     public void SendMsg(string msg) {
-		lock (commandQueue) {
-			commandQueue.Enqueue("PRIVMSG #" + channelName + " :" + msg);
-		}
+		commandQueue.Enqueue("PRIVMSG #" + channelName + " :" + msg);
 	}
 
     // ========================================================================
@@ -139,9 +149,53 @@ public class TwitchIRC : MonoBehaviour {
         lock (this.receivedMsgs) {
             if (this.receivedMsgs.Count > 0) {
                 for (int i = 0; i < this.receivedMsgs.Count; i++) {
-                    this.messageReceivedEvent.Invoke(this.receivedMsgs[i]);
+                    this.ChatMsgReceived(this.receivedMsgs[i]);
                 }
                 this.receivedMsgs.Clear();
+            }
+        }
+    }
+
+    // ========================================================================
+    // When message is received from IRC-server or our own message.
+    private void ChatMsgReceived(string msg) {
+        // Temporary, for now there isn't any commands on the victory scene
+        if(this.game == null) {
+            return;
+        }
+
+        int msgIndex = msg.IndexOf("PRIVMSG #");
+        string message = msg.Substring(msgIndex + this.channelName.Length + 11).ToLower();
+        string user = msg.Substring(1, msg.IndexOf('!') - 1);
+        this.ParseMessage(user, message);
+    }
+
+    // ========================================================================
+    // Parse the user message
+    private void ParseMessage(string user, string message) {
+        string[] command = message.Split(' ');
+        if (command.Length == 2) {
+            if (command[1].Length == 2 || command[1].Length == 3) {
+                // Parsing the coordinates
+                int numberLength = command[1].Length == 2 ? 1 : 2;
+                int letterCode = (int)(command[1][0]);
+                int number;
+                bool parsed = Int32.TryParse(command[1].Substring(1, numberLength), out number);
+
+                // Parsing the command
+                if (letterCode >= 97 && letterCode <= 122 && parsed && number >= 1) {
+                    string order = string.Empty;
+                    if (command[0] == "check" || command[0] == "c") {
+                        order = "check";
+                    } else if (command[0] == "flag" || command[0] == "f") {
+                        order = "flag";
+                    } else if (command[0] == "unflag" || command[0] == "uf") {
+                        order = "unflag";
+                    } else if (command[0] == "clear" || command[0] == "cl") {
+                        order = "clear";
+                    }
+                    this.game.ChatCommand(user, order, number - 1, letterCode - 97);
+                }
             }
         }
     }
