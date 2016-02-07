@@ -159,7 +159,11 @@ public class Game : MonoBehaviour {
             deadUsers = new List<string>(this.deadUsersTime.Keys);
             int count = 0;
             while (count < deadUsers.Count && count < 5) {
-                deadPlayersList += deadUsers[count] + " - " + this.deadUsersTime[deadUsers[count]].ToString("f1") + "\n";
+                string user = deadUsers[count];
+                if (user.Length > 14) {
+                    user = user.Substring(0, 14) + "...";
+                }
+                deadPlayersList += user + " - " + this.deadUsersTime[deadUsers[count]].ToString("f1") + "\n";
                 count++;
             }
             this.tmDeadList.text = deadPlayersList;
@@ -176,7 +180,11 @@ public class Game : MonoBehaviour {
             string scoresList = string.Empty;
             int count = 0;
             while (count < orderedScores.Count && count < 5) {
-                scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString() + "\n";
+                string user = orderedScores[count].Key;
+                if(user.Length > 14) {
+                    user = user.Substring(0, 14) + "...";
+                }
+                scoresList += user + " - " + orderedScores[count].Value.ToString() + "\n";
                 count++;
             }
             this.tmScoresList.text = scoresList;
@@ -270,7 +278,6 @@ public class Game : MonoBehaviour {
 	// ========================================================================
 	// Registering the time spent to complete the game and the number of deaths
 	private void RegisterTime() {
-		string newTime = this.nbDeaths.ToString() + ";" + this.timer.time.ToString("f3") + "\n";
 		FileInfo timesFile = new FileInfo("Data/bestTimes.txt");
 		timesFile.Directory.Create();
 
@@ -301,13 +308,15 @@ public class Game : MonoBehaviour {
 			}
 
 			if(newBestTime) {
+                GlobalManager.twitch.SendMsg("New Top10 time! Kreygasm");
 				File.WriteAllText(timesFile.FullName, string.Empty);
 				foreach(KeyValuePair<int, float> values in lineValues) {
 					File.AppendAllText(timesFile.FullName, values.Key.ToString() + ";" + values.Value.ToString("f3") + "\n");
 				}
 			}
 		} else {
-			File.WriteAllText(timesFile.FullName, newTime);
+            string newTime = this.nbDeaths.ToString() + ";" + this.timer.time.ToString("f3") + "\n";
+            File.WriteAllText(timesFile.FullName, newTime);
 		}
 	}
 

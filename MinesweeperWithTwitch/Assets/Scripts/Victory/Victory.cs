@@ -19,7 +19,11 @@ public class Victory : MonoBehaviour {
         string scoresList = string.Empty;
         int count = 0;
         while (count < orderedScores.Count && count < 9) {
-            scoresList += orderedScores[count].Key + " - " + orderedScores[count].Value.ToString() + "\n";
+            string user = orderedScores[count].Key;
+            if (user.Length > 14) {
+                user = user.Substring(0, 14) + "...";
+            }
+            scoresList += user + " - " + orderedScores[count].Value.ToString() + "\n";
             count++;
         }
         this.tmScoresList.text = scoresList;
@@ -48,7 +52,11 @@ public class Victory : MonoBehaviour {
 		string playersList = string.Empty;
 		int count = 0;
 		while(count < bestPlayers.Count && count < 10) {
-			playersList += bestPlayers[count].Key + " - " + bestPlayers[count].Value.ToString() + "\n";
+            string user = bestPlayers[count].Key;
+            if (user.Length > 14) {
+                user = user.Substring(0, 14) + "...";
+            }
+            playersList += user + " - " + bestPlayers[count].Value.ToString() + "\n";
 			count++;
 		}
 
