@@ -3,7 +3,7 @@ Minesweeper played with Twitch chat
 This game is streamed on [PlayWithTwitch](http://www.twitch.tv/playwithtwitch)
 
 ##Screenshot
-http://i.imgur.com/yfn4kAR.png
+http://i.imgur.com/BB0bhhL.png
 
 ##Credits
 TwitchIRC original class by [Grahnz](https://github.com/Grahnz)  
