@@ -12,11 +12,11 @@ public class Game : MonoBehaviour {
 	public GameObject twitchPrefab, squarePrefab, borderSquarePrefab, borderTextPrefab;
     public TextMesh tmDeaths, tmScoresList, tmDeadList, tmChecked;
     public Timer timer;
+    public Square[,] squares { get; private set; }
     public bool isGameMined { get; private set; }
     public int nbSquares, nbMines, nbBestTimes;
     public float deadTime;
-
-    private Square[,] squares;
+    
     private Dictionary<string, float> deadUsersTime;
     private Dictionary<string, int> userScores;
     private int nbSquaresX, nbSquaresY, nbSquaresChecked, nbSquaresNeeded, nbDeaths;
@@ -139,6 +139,7 @@ public class Game : MonoBehaviour {
         // The game is now mined, we can start the timer
         this.isGameMined = true;
         this.timer.StartTimer();
+        GetComponentInChildren<ScoreEvent>().StartGame(this);
     }
     
     // ========================================================================

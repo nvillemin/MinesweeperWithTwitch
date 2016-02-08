@@ -14,9 +14,8 @@ public class Square : MonoBehaviour {
     private SpriteRenderer spriteRenderer;
     private GameObject flag, coordinates;
     private List<Square> neighbors = new List<Square>();
-
-	private bool isRightButtonDown;
-    public int indexX, indexY;
+	private bool isRightButtonDown, isScoreEvent;
+    private int indexX, indexY;
 
     // ========================================================================
     // Square initialization
@@ -26,6 +25,7 @@ public class Square : MonoBehaviour {
         this.isFlagged = false;
         this.isChecked = false;
         this.isRightButtonDown = false;
+        this.isScoreEvent = false;
         this.nbNearbyMines = 0;
     }
 
@@ -100,7 +100,8 @@ public class Square : MonoBehaviour {
 
 			Destroy(this.coordinates);
 			this.isChecked = true;
-            this.spriteRenderer.color = new Color(255, 255, 255);
+            this.spriteRenderer.color = new Color(1, 1, 1);
+            int pointsAwarded = (this.isScoreEvent) ? 5 : 1;
 
 			// There is a mine on this square, defeat
 			if(this.isMined) {
@@ -112,10 +113,10 @@ public class Square : MonoBehaviour {
 				TextMesh tm = (TextMesh)nbMinesText.GetComponent("TextMesh");
 				tm.text = this.nbNearbyMines.ToString();
 				tm.color = GlobalManager.minesTextColor[nbNearbyMines - 1]; // -1 because array starts at 0
-				return new KeyValuePair<int, int>(checkValues.Key + 1, checkValues.Value);
+				return new KeyValuePair<int, int>(checkValues.Key + pointsAwarded, checkValues.Value);
 			// No mine and also no mines nearby, check the neighbors as well
 			} else {
-				checkValues = new KeyValuePair<int, int>(checkValues.Key + 1, checkValues.Value);
+				checkValues = new KeyValuePair<int, int>(checkValues.Key + pointsAwarded, checkValues.Value);
 				foreach(Square neighbor in this.neighbors) {
 					if(!neighbor.isChecked) {
 						checkValues = neighbor.Check(checkValues);
@@ -183,5 +184,19 @@ public class Square : MonoBehaviour {
 		}
 	}
 
-	public List<Square> GetNeighbors() { return this.neighbors;  }
+    // ========================================================================
+    // Tag or untag this square has the chosen one for the score event
+    public void SetScoreEvent(bool main, bool active) {
+        this.isScoreEvent = active;
+        if(!this.isChecked) {
+            this.spriteRenderer.color = (active) ? new Color(0, 0.8f, 0) : new Color(0.3529f, 0.6549f, 1);
+        }
+        if(main) {
+            foreach(Square neighbor in this.neighbors) {
+                neighbor.SetScoreEvent(false, active);
+            }
+        }
+    }
+
+    public List<Square> GetNeighbors() { return this.neighbors;  }
 }

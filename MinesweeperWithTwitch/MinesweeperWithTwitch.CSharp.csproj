@@ -63,11 +63,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Game\Game.cs" />
+    <Compile Include="Assets\Scripts\Game\ScoreEvent.cs" />
     <Compile Include="Assets\Scripts\Game\Square.cs" />
     <Compile Include="Assets\Scripts\Game\Timer.cs" />
-    <Compile Include="Assets\Scripts\Game\TwitchIRC.cs" />
     <Compile Include="Assets\Scripts\Game\UserScores.cs" />
     <Compile Include="Assets\Scripts\Global\GlobalManager.cs" />
+    <Compile Include="Assets\Scripts\Global\TwitchIRC.cs" />
     <Compile Include="Assets\Scripts\Victory\RestartTimer.cs" />
     <Compile Include="Assets\Scripts\Victory\Victory.cs" />
   </ItemGroup>
