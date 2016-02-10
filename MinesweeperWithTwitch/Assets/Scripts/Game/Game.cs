@@ -200,10 +200,7 @@ public class Game : MonoBehaviour {
         if(x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
             if (command.Equals("check")) {
 				KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0), user);
-				// User checked a mine, kill him for some time
-				if(checkValues.Value > 0) {
-					this.KillUser(user, x, y);
-				} else {
+				if(checkValues.Value == 0) {
 					this.IncrementUserScore(user, checkValues.Key);
 					this.NewSquaresChecked(checkValues.Key + checkValues.Value);
 				}
