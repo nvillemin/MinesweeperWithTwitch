@@ -199,11 +199,10 @@ public class Game : MonoBehaviour {
     public void ChatCommand(string user, string command, int x, int y) {
         if(x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
             if (command.Equals("check")) {
-				KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0));
+				KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0), user);
 				// User checked a mine, kill him for some time
 				if(checkValues.Value > 0) {
 					this.KillUser(user, x, y);
-					this.UpdateScoreList();
 				} else {
 					this.IncrementUserScore(user, checkValues.Key);
 					this.NewSquaresChecked(checkValues.Key + checkValues.Value);
@@ -257,8 +256,10 @@ public class Game : MonoBehaviour {
 			this.userScores.Add(user, 0);
 		}
 
-        // Send a message in chat telling the player that he died
-        char squareLetter = (char)(y + 65);
+		this.UpdateScoreList();
+
+		// Send a message in chat telling the player that he died
+		char squareLetter = (char)(y + 65);
         string message = "KAPOW " + user + ", you just checked a bomb in " + squareLetter + (x + 1).ToString() +
             " and died. You can't play for 60 seconds and your score has been reduced by 25%. EleGiggle";
         GlobalManager.twitch.SendMsg(message);

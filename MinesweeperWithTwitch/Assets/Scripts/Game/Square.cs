@@ -86,7 +86,7 @@ public class Square : MonoBehaviour {
 
 	// ========================================================================
 	// Check this square
-	public KeyValuePair<int, int> Check(KeyValuePair<int, int> checkValues) {
+	public KeyValuePair<int, int> Check(KeyValuePair<int, int> checkValues, string user) {
 		if(!this.isChecked && !this.isFlagged) {
 			
 			// Generate the mines if it's the first check of the game
@@ -106,6 +106,7 @@ public class Square : MonoBehaviour {
 			// There is a mine on this square, defeat
 			if(this.isMined) {
 				Instantiate(this.minePrefab, this.transform.position - new Vector3(0, 0, 1), Quaternion.identity);
+				this.game.KillUser(user, this.indexX, this.indexY);
 				return new KeyValuePair<int, int>(checkValues.Key, checkValues.Value + 1);
 			// There are mines nearby, display the number
 			} else if(this.nbNearbyMines > 0) {
@@ -119,7 +120,7 @@ public class Square : MonoBehaviour {
 				checkValues = new KeyValuePair<int, int>(checkValues.Key + pointsAwarded, checkValues.Value);
 				foreach(Square neighbor in this.neighbors) {
 					if(!neighbor.isChecked) {
-						checkValues = neighbor.Check(checkValues);
+						checkValues = neighbor.Check(checkValues, user);
 					}
 				}
 			}
@@ -165,21 +166,15 @@ public class Square : MonoBehaviour {
 				KeyValuePair<int, int> checkValues = new KeyValuePair<int, int>(0, 0);
 				foreach(Square neighbor in this.neighbors) {
 					if(!neighbor.isChecked) {
-						checkValues = neighbor.Check(checkValues);
+						checkValues = neighbor.Check(checkValues, user);
 					}
 				}
 
 				// No bombs checked, increase user score
 				if(checkValues.Value == 0) {
 					this.game.IncrementUserScore(user, checkValues.Key);
-				// At least one bomb checked, decrease user score for each bomb
-				} else {
-					for(int i=0; i<checkValues.Value; ++i) {
-						this.game.KillUser(user, this.indexX, this.indexY);
-						this.game.UpdateScoreList();
-					}
 				}
-				this.game.NewSquaresChecked(checkValues.Key + checkValues.Value);
+				this.game.NewSquaresChecked(checkValues.Key);
 			}
 		}
 	}
