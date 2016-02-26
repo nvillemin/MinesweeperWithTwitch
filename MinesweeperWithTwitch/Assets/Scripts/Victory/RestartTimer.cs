@@ -1,17 +1,18 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class RestartTimer : MonoBehaviour {
     public float restartTime;
 
-	private TextMesh tm;
+	private Text tm;
 	private float time;
 
     // ========================================================================
     // Restart timer initialization
     void Start() {
-		this.tm = (TextMesh)this.GetComponent("TextMesh");
+		this.tm = (Text)this.GetComponent("Text");
         this.tm.text = restartTime.ToString();
         this.time = restartTime;
 	}

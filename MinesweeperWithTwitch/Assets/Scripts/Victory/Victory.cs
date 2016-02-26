@@ -3,9 +3,10 @@ using Global;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine.UI;
 
 public class Victory : MonoBehaviour {
-	public TextMesh tmScore, tmDeaths, tmScoresList, tmTimesList, tmBestPlayersList;
+	public Text tmScore, tmDeaths, tmScoresList, tmTimesList, tmBestPlayersList;
 
     // ========================================================================
     // Victory scene initialization

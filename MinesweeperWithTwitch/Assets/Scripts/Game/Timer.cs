@@ -1,16 +1,17 @@
 ﻿using UnityEngine;
 using Global;
+using UnityEngine.UI;
 
 public class Timer : MonoBehaviour {
 	public float time { get; private set; }
 
-    private TextMesh tm;
+    private Text text;
     private bool isActive;
 
     // ========================================================================
     // Timer initialization
     void Start() {
-        this.tm = (TextMesh)this.GetComponent("TextMesh");
+        this.text = (Text)this.GetComponent("Text");
         this.time = 0;
         this.isActive = false;
     }
@@ -20,7 +21,7 @@ public class Timer : MonoBehaviour {
     void Update() {
         if (this.isActive) {
             this.time += Time.deltaTime;
-            this.tm.text = GlobalManager.TimeToString(this.time);
+            this.text.text = GlobalManager.TimeToString(this.time);
         }
     }
 

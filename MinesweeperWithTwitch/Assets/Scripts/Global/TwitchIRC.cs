@@ -5,7 +5,6 @@ using System.Threading;
 using System.IO;
 
 public class TwitchIRC : MonoBehaviour {
-	public string oauth;
 	public string nickName;
 	public string channelName;
 	public class MsgEvent : UnityEngine.Events.UnityEvent<string> { }
@@ -17,6 +16,7 @@ public class TwitchIRC : MonoBehaviour {
 
     private string buffer = string.Empty;
     private string server = "irc.twitch.tv";
+    private string oauth;
     private int port = 6667;
     private bool stopThreads = false;
 	private Queue<string> commandQueue = new Queue<string>();
@@ -32,7 +32,8 @@ public class TwitchIRC : MonoBehaviour {
     // ========================================================================
     // Initialization of the IRC connexion to the Twitch chat
     private void StartIRC() {
-		System.Net.Sockets.TcpClient sock = new System.Net.Sockets.TcpClient();
+        this.oauth = File.ReadAllText("Data/oauth.txt");
+        System.Net.Sockets.TcpClient sock = new System.Net.Sockets.TcpClient();
 		var result = sock.BeginConnect(this.server, this.port, null, null);
 		var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(10));
 
@@ -174,28 +175,28 @@ public class TwitchIRC : MonoBehaviour {
     // Parse the user message
     private void ParseMessage(string user, string message) {
         string[] command = message.Split(' ');
-        if (command.Length == 2) {
-            if (command[1].Length == 2 || command[1].Length == 3) {
-                // Parsing the coordinates
-                int numberLength = command[1].Length == 2 ? 1 : 2;
-                int letterCode = (int)(command[1][0]);
-                int number;
-                bool parsed = Int32.TryParse(command[1].Substring(1, numberLength), out number);
+        if(command.Length == 1 && command[0].Equals("!score")) {
+            this.game.ChatCommand(user, "!score", 0, 0);
+        } else if (command.Length == 2 && (command[1].Length == 2 || command[1].Length == 3)) {
+            // Parsing the coordinates
+            int numberLength = command[1].Length == 2 ? 1 : 2;
+            int letterCode = (int)(command[1][0]);
+            int number;
+            bool parsed = Int32.TryParse(command[1].Substring(1, numberLength), out number);
 
-                // Parsing the command
-                if (letterCode >= 97 && letterCode <= 122 && parsed && number >= 1) {
-                    string order = string.Empty;
-                    if (command[0] == "check" || command[0] == "c") {
-                        order = "check";
-                    } else if (command[0] == "flag" || command[0] == "f") {
-                        order = "flag";
-                    } else if (command[0] == "unflag" || command[0] == "uf") {
-                        order = "unflag";
-                    } else if (command[0] == "clear" || command[0] == "cl") {
-                        order = "clear";
-                    }
-                    this.game.ChatCommand(user, order, number - 1, letterCode - 97);
+            // Parsing the command
+            if (letterCode >= 97 && letterCode <= 122 && parsed && number >= 1) {
+                string order = string.Empty;
+                if (command[0] == "check" || command[0] == "c") {
+                    order = "check";
+                } else if (command[0] == "flag" || command[0] == "f") {
+                    order = "flag";
+                } else if (command[0] == "unflag" || command[0] == "uf") {
+                    order = "unflag";
+                } else if (command[0] == "clear" || command[0] == "cl") {
+                    order = "clear";
                 }
+                this.game.ChatCommand(user, order, number - 1, letterCode - 97);
             }
         }
     }

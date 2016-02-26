@@ -7,10 +7,11 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Game : MonoBehaviour {
 	public GameObject twitchPrefab, squarePrefab, borderSquarePrefab, borderTextPrefab;
-    public TextMesh tmDeaths, tmScoresList, tmDeadList, tmChecked;
+    public Text tmDeaths, tmScoresList, tmDeadList, tmChecked;
     public Timer timer;
     public Square[,] squares { get; private set; }
     public bool isGameMined { get; private set; }
@@ -197,21 +198,38 @@ public class Game : MonoBehaviour {
     // ========================================================================
     // Called by a user command in Twitch chat
     public void ChatCommand(string user, string command, int x, int y) {
-        if(x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
+        if(command.Equals("!score")) {
+            int score;
+            if(GlobalManager.globalScores.scores.ContainsKey(user)) {
+                score = GlobalManager.globalScores.scores[user];
+            } else {
+                score = 0;
+            }
+            string position = string.Empty;
+            if(score > 0) {
+                List<int> allScores = GlobalManager.globalScores.scores.Values.ToList();
+                allScores = allScores.OrderByDescending(z => z).ToList();
+                int totalPlayers = allScores.Count;
+                int scorePosition = allScores.FindIndex(z => z.Equals(score));
+                position = " (Position " + (scorePosition + 1) + " / " + totalPlayers + ")";
+            }
+            string message = "Total score for " + user + ": " + score + position;
+            GlobalManager.twitch.SendMsg(message);
+        } else if (x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
             if (command.Equals("check")) {
-				KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0), user);
-				if(checkValues.Value == 0) {
-					this.IncrementUserScore(user, checkValues.Key);
-					this.NewSquaresChecked(checkValues.Key + checkValues.Value);
-				}
-            } else if(command.Equals("flag")) {
+                KeyValuePair<int, int> checkValues = this.squares[x, y].Check(new KeyValuePair<int, int>(0, 0), user);
+                if (checkValues.Value == 0) {
+                    this.IncrementUserScore(user, checkValues.Key);
+                    this.NewSquaresChecked(checkValues.Key + checkValues.Value);
+                }
+            } else if (command.Equals("flag")) {
                 this.squares[x, y].Flag();
-            } else if(command.Equals("unflag")) {
+            } else if (command.Equals("unflag")) {
                 this.squares[x, y].Unflag();
-            } else if(command.Equals("clear")) {
-				this.squares[x, y].Clear(user);
-			}
-		}
+            } else if (command.Equals("clear")) {
+                this.squares[x, y].Clear(user);
+            }
+        }
     }
 
     // ========================================================================

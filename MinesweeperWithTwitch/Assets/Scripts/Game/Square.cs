@@ -88,7 +88,6 @@ public class Square : MonoBehaviour {
 	// Check this square
 	public KeyValuePair<int, int> Check(KeyValuePair<int, int> checkValues, string user) {
 		if(!this.isChecked && !this.isFlagged) {
-			
 			// Generate the mines if it's the first check of the game
 			if(!this.game.isGameMined) {
 				if(this.game.nbMines >= this.game.nbSquares - 9) {
@@ -101,11 +100,12 @@ public class Square : MonoBehaviour {
 			Destroy(this.coordinates);
 			this.isChecked = true;
             this.spriteRenderer.color = new Color(1, 1, 1);
-            int pointsAwarded = (this.isScoreEvent) ? 5 : 1;
+            //int pointsAwarded = (this.isScoreEvent) ? 5 : 1;
 
-			// There is a mine on this square, defeat
+			// There is a mine on this square
 			if(this.isMined) {
 				Instantiate(this.minePrefab, this.transform.position - new Vector3(0, 0, 1), Quaternion.identity);
+                this.spriteRenderer.color = new Color(0.7f, 0.7f, 0.7f);
 				this.game.KillUser(user, this.indexX, this.indexY);
 				return new KeyValuePair<int, int>(checkValues.Key, checkValues.Value + 1);
 			// There are mines nearby, display the number
@@ -114,10 +114,10 @@ public class Square : MonoBehaviour {
 				TextMesh tm = (TextMesh)nbMinesText.GetComponent("TextMesh");
 				tm.text = this.nbNearbyMines.ToString();
 				tm.color = GlobalManager.minesTextColor[nbNearbyMines - 1]; // -1 because array starts at 0
-				return new KeyValuePair<int, int>(checkValues.Key + pointsAwarded, checkValues.Value);
+				return new KeyValuePair<int, int>(checkValues.Key + 1, checkValues.Value);
 			// No mine and also no mines nearby, check the neighbors as well
 			} else {
-				checkValues = new KeyValuePair<int, int>(checkValues.Key + pointsAwarded, checkValues.Value);
+				checkValues = new KeyValuePair<int, int>(checkValues.Key + 1, checkValues.Value);
 				foreach(Square neighbor in this.neighbors) {
 					if(!neighbor.isChecked) {
 						checkValues = neighbor.Check(checkValues, user);
