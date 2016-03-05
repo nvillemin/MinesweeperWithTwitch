@@ -19,7 +19,7 @@ public class Victory : MonoBehaviour {
         List<KeyValuePair<string, int>> orderedScores = GlobalManager.gameScores;
         string scoresList = string.Empty;
         int count = 0;
-        while (count < orderedScores.Count && count < 9) {
+        while (count < orderedScores.Count && count < 6) {
             string user = orderedScores[count].Key;
             if (user.Length > 14) {
                 user = user.Substring(0, 14) + "...";

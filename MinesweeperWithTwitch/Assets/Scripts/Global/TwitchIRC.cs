@@ -160,11 +160,6 @@ public class TwitchIRC : MonoBehaviour {
     // ========================================================================
     // When message is received from IRC-server or our own message.
     private void ChatMsgReceived(string msg) {
-        // Temporary, for now there isn't any commands on the victory scene
-        if(this.game == null) {
-            return;
-        }
-
         int msgIndex = msg.IndexOf("PRIVMSG #");
         string message = msg.Substring(msgIndex + this.channelName.Length + 11).ToLower();
         string user = msg.Substring(1, msg.IndexOf('!') - 1);
@@ -175,9 +170,13 @@ public class TwitchIRC : MonoBehaviour {
     // Parse the user message
     private void ParseMessage(string user, string message) {
         string[] command = message.Split(' ');
-        if(command.Length == 1 && command[0].Equals("!score")) {
-            this.game.ChatCommand(user, "!score", 0, 0);
-        } else if (command.Length == 2 && (command[1].Length == 2 || command[1].Length == 3)) {
+        if(command[0].Equals("!score")) {
+			if(command.Length == 1) {
+				this.game.ChatCommand(user, "!score", 0, 0);
+			} else {
+				this.game.ChatCommand(command[1], "!score", 0, 0);
+			}
+        } else if (this.game != null && command.Length == 2 && (command[1].Length == 2 || command[1].Length == 3)) {
             // Parsing the coordinates
             int numberLength = command[1].Length == 2 ? 1 : 2;
             int letterCode = (int)(command[1][0]);

@@ -198,22 +198,24 @@ public class Game : MonoBehaviour {
     // ========================================================================
     // Called by a user command in Twitch chat
     public void ChatCommand(string user, string command, int x, int y) {
-        if(command.Equals("!score")) {
+		if (command.Equals("!score")) {
             int score;
-            if(GlobalManager.globalScores.scores.ContainsKey(user)) {
+			string message = String.Empty;
+			if (GlobalManager.globalScores.scores.ContainsKey(user)) {
                 score = GlobalManager.globalScores.scores[user];
-            } else {
+				string position = string.Empty;
+				if (score > 0) {
+					List<int> allScores = GlobalManager.globalScores.scores.Values.ToList();
+					allScores = allScores.OrderByDescending(z => z).ToList();
+					int totalPlayers = allScores.Count;
+					int scorePosition = allScores.FindIndex(z => z.Equals(score));
+					position = " (Position " + (scorePosition + 1) + " / " + totalPlayers + ")";
+				}
+				message = "Total score for " + user + ": " + score + position;
+			} else {
                 score = 0;
-            }
-            string position = string.Empty;
-            if(score > 0) {
-                List<int> allScores = GlobalManager.globalScores.scores.Values.ToList();
-                allScores = allScores.OrderByDescending(z => z).ToList();
-                int totalPlayers = allScores.Count;
-                int scorePosition = allScores.FindIndex(z => z.Equals(score));
-                position = " (Position " + (scorePosition + 1) + " / " + totalPlayers + ")";
-            }
-            string message = "Total score for " + user + ": " + score + position;
+				message = "Total score for " + user + ": 0! EleGiggle"; 
+			}
             GlobalManager.twitch.SendMsg(message);
         } else if (x >= 0 && x < this.nbSquaresX && y >= 0 && y < this.nbSquaresY && !this.deadUsersTime.ContainsKey(user)) {
             if (command.Equals("check")) {
